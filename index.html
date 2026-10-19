@@ -1,0 +1,1154 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Graph Algorithms Deck</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout concept: a full-height slide stage on graph paper. Slim top bar, bottom nav. Each topic slide pairs a short explanation with a live graph demo. */
+:root{
+  --bg:#EDF0F6; --grid:#E0E5EF; --surface:#FFFFFF; --surface-2:#F4F6FB;
+  --ink:#142038; --muted:#56627F; --line:#C5CEE2; --edge:#9AA6C4;
+  --accent:#2C54E0; --accent-ink:#FFFFFF; --accent-soft:#E1E8FD;
+  --frontier:#F0B22E; --frontier-ink:#1B1B1B; --frontier-soft:#FDF0CF;
+  --done:#12867A; --done-ink:#FFFFFF; --done-soft:#D8F1EC;
+  --bad:#CF3F3A; --bad-soft:#FADFDD;
+  --font-display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --font-body:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1120; --grid:#121A30; --surface:#141D36; --surface-2:#1A2544;
+    --ink:#E6EBFA; --muted:#9AA6C8; --line:#2C3A5F; --edge:#4A5B8C;
+    --accent:#7E9CFF; --accent-ink:#0B1120; --accent-soft:#1F2C5E;
+    --frontier:#E9B13B; --frontier-ink:#1B1B1B; --frontier-soft:#3A3016;
+    --done:#3EC2AF; --done-ink:#0B1120; --done-soft:#143A3A;
+    --bad:#FF7B73; --bad-soft:#4A1F25;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1120; --grid:#121A30; --surface:#141D36; --surface-2:#1A2544;
+  --ink:#E6EBFA; --muted:#9AA6C8; --line:#2C3A5F; --edge:#4A5B8C;
+  --accent:#7E9CFF; --accent-ink:#0B1120; --accent-soft:#1F2C5E;
+  --frontier:#E9B13B; --frontier-ink:#1B1B1B; --frontier-soft:#3A3016;
+  --done:#3EC2AF; --done-ink:#0B1120; --done-soft:#143A3A;
+  --bad:#FF7B73; --bad-soft:#4A1F25;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background-color:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;
+  color:var(--ink);
+  font:400 16px/1.55 var(--font-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.app{position:relative;height:100%;max-width:1200px;margin:0 auto;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto}
+.bar{display:flex;align-items:center;gap:12px;padding-block:10px}
+.brand{font:600 12px var(--font-mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.count{margin-left:auto;font:500 13px var(--font-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.progress{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+#stage{min-height:0;overflow-y:auto;overflow-x:hidden;padding-block:22px 28px}
+.hint{font-size:13px;color:var(--muted);text-align:center;flex:1;min-width:0}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:6px 16px;background:var(--surface);color:var(--ink);border:1.5px solid var(--ink);border-radius:8px;cursor:pointer;font-weight:500;transition:transform .12s,background .12s}
+.btn:hover:not(:disabled){transform:translateY(-1px);background:var(--surface-2)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover:not(:disabled){background:var(--accent);filter:brightness(1.08)}
+.btn.quiet{border-color:var(--line);color:var(--muted)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+.menu{position:absolute;z-index:20;top:46px;left:0;width:min(380px,100%);max-height:70vh;overflow:auto;background:var(--surface);border:1.5px solid var(--ink);border-radius:10px;padding:8px;box-shadow:0 12px 30px rgba(0,0,0,.18)}
+.menu button{display:block;width:100%;text-align:left;background:none;border:0;border-radius:6px;padding:8px 10px;cursor:pointer}
+.menu button:hover{background:var(--surface-2)}
+.menu button[aria-current="true"]{background:var(--accent-soft);font-weight:600}
+
+.slide{outline:none}
+.slide:not([hidden]){animation:slidein .28s ease-out}
+@keyframes slidein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.eyebrow{margin:0 0 6px;font:600 12px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+h1,h2,h3,h4{font-family:var(--font-display);text-wrap:balance;margin:0}
+h1{font-weight:800;font-size:clamp(2rem,4.6vw,3.5rem);line-height:1.04;letter-spacing:-.02em}
+h2{font-weight:800;font-size:clamp(1.6rem,3.2vw,2.4rem);line-height:1.1;letter-spacing:-.015em}
+h4{font-size:15px;font-weight:600}
+.lead{font-size:1.08rem;color:var(--muted);max-width:62ch;margin:10px 0 0}
+.muted{color:var(--muted)}
+.mono{font-family:var(--font-mono)}
+.split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:24px;align-items:start;margin-top:18px}
+.split.wide{grid-template-columns:minmax(0,4fr) minmax(0,8fr)}
+.split>*{min-width:0}
+@media (max-width:860px){.split,.split.wide{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:12px}
+.panel svg{display:block;width:100%;height:auto;max-height:420px}
+.box{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.boxh{margin-bottom:8px;font-size:13px;color:var(--muted);font-weight:600}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.narr{margin-top:12px;min-height:3.4em;padding:10px 12px;background:var(--accent-soft);border-radius:8px;font-size:15px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.steppos{margin-left:auto;font:500 13px var(--font-mono);color:var(--muted)}
+.facts{margin:14px 0 0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px}
+.code{margin:14px 0 0;padding:10px 6px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;font:13px/1.75 var(--font-mono);overflow-x:auto;white-space:pre}
+.code .ln{display:block;padding:0 8px;border-radius:4px}
+.code .ln.on{background:var(--accent-soft);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;align-items:center}
+.chip{display:inline-flex;min-width:34px;height:34px;align-items:center;justify-content:center;padding:0 9px;border:1.5px solid var(--ink);border-radius:6px;background:var(--surface);font:600 14px var(--font-mono)}
+.chip.top{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip.grp{background:var(--done-soft);border-color:var(--done);font-weight:500}
+.scroll{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:15px}
+.tbl th,.tbl td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl th{font:600 12px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tbl td:first-child{font-weight:500}
+.tbl.small td,.tbl.small th{padding:5px 10px;font-size:14px}
+.tbl tr.cur td{background:var(--accent-soft)}
+.tbl tr.fin td{color:var(--done);font-weight:600}
+.tbl td.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+
+/* graph svg */
+.edge .vis{stroke:var(--edge);stroke-width:3;stroke-linecap:round;fill:none}
+.edge .hit{stroke:transparent;stroke-width:20;pointer-events:none;fill:none}
+.interactive .edge .hit{pointer-events:stroke;cursor:pointer}
+.edge.e-tree .vis{stroke:var(--accent);stroke-width:5}
+.edge.e-done .vis{stroke:var(--done);stroke-width:5}
+.edge.e-hl .vis{stroke:var(--frontier);stroke-width:5}
+.edge.e-rej .vis{stroke:var(--bad);stroke-width:3.5;stroke-dasharray:7 6}
+.edge .wt{font:600 13px var(--font-mono);fill:var(--muted);paint-order:stroke;stroke:var(--surface);stroke-width:5px;stroke-linejoin:round}
+.edge.e-tree .wt,.edge.e-done .wt,.edge.e-hl .wt{fill:var(--ink)}
+.node circle{fill:var(--surface);stroke:var(--ink);stroke-width:2.5}
+.node .lbl{font:600 15px var(--font-mono);fill:var(--ink)}
+.node .badge{font:600 12px var(--font-mono);fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:5px;stroke-linejoin:round}
+.n-cur circle{fill:var(--accent);stroke:var(--accent)}
+.n-cur .lbl{fill:var(--accent-ink)}
+.n-front circle{fill:var(--frontier);stroke:var(--ink)}
+.n-front .lbl{fill:var(--frontier-ink)}
+.n-done circle{fill:var(--done);stroke:var(--done)}
+.n-done .lbl{fill:var(--done-ink)}
+.n-hl circle{fill:var(--accent-soft);stroke:var(--accent);stroke-width:4}
+
+/* title slide */
+.hero{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:28px;align-items:center}
+.hero>*{min-width:0}
+@media (max-width:860px){.hero{grid-template-columns:minmax(0,1fr)}}
+.hero-art .node circle{animation:wave 10s ease-in-out infinite;animation-delay:calc(var(--i) * .8s)}
+@keyframes wave{0%,100%{fill:var(--surface)}10%{fill:var(--frontier-soft)}22%,70%{fill:var(--accent-soft)}85%{fill:var(--surface)}}
+.agenda{list-style:none;margin:22px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:0 20px}
+.agenda button{display:flex;gap:12px;align-items:baseline;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:9px 2px;cursor:pointer}
+.agenda button:hover{color:var(--accent)}
+.agenda b{font:600 13px var(--font-mono);color:var(--accent);min-width:1.2em}
+.agenda .q b{color:var(--frontier-ink);background:var(--frontier);border-radius:4px;padding:0 5px}
+
+/* terminology */
+.termlist{display:flex;flex-wrap:wrap;gap:8px}
+.defn{margin-top:14px;padding:14px 16px;background:var(--surface);border:1.5px solid var(--line);border-radius:10px;min-height:7.5em}
+.defn b{font-family:var(--font-display);font-size:1.2rem}
+.kinds{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:20px}
+.kinds div{padding:10px 14px;border-left:4px solid var(--edge);background:var(--surface);border-radius:0 8px 8px 0;font-size:14.5px}
+.kinds b{display:block;font-family:var(--font-display);font-size:1rem}
+
+/* adjacency */
+.triple{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin-top:18px}
+.triple>*{min-width:0}
+.mx{border-collapse:separate;border-spacing:3px;margin:8px auto 0}
+.mx th{font:600 13px var(--font-mono);color:var(--muted);width:30px;height:30px;text-align:center;border-radius:4px}
+.mx td{width:30px;height:30px;text-align:center;font:500 14px var(--font-mono);background:var(--surface-2);border-radius:4px;color:var(--muted)}
+.mx td.one{background:var(--surface);color:var(--ink);font-weight:600;border:1.5px solid var(--ink);cursor:pointer}
+.mx td.hl{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.mx th.hl{background:var(--accent-soft);color:var(--ink)}
+.alist{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.alist li{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.alist .vid{font:600 14px var(--font-mono);width:1.4em}
+.pill{min-width:30px;height:30px;padding:0 8px;border:1.5px solid var(--ink);border-radius:6px;background:var(--surface);font:500 14px var(--font-mono);cursor:pointer}
+.pill.hl{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.note{margin:10px 0 0;font-size:13.5px;color:var(--muted)}
+.slider{display:grid;grid-template-columns:150px minmax(0,1fr) 70px;gap:12px;align-items:center;margin-top:10px}
+.slider output{font:600 14px var(--font-mono);text-align:right}
+.slider input{width:100%;accent-color:var(--accent)}
+@media (max-width:520px){.slider{grid-template-columns:minmax(0,1fr) 60px}.slider label{grid-column:1/-1}}
+.bars{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.bar-row{display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;align-items:center;font-size:14px}
+.bar-row .track{height:26px;background:var(--surface-2);border-radius:5px;overflow:hidden}
+.bar-row .fill{height:100%;display:flex;align-items:center;padding-left:8px;font:600 12.5px var(--font-mono);white-space:nowrap;min-width:2px;transition:width .2s}
+.fill.m{background:var(--frontier);color:var(--frontier-ink)}
+.fill.l{background:var(--accent);color:var(--accent-ink)}
+@media (max-width:520px){.bar-row{grid-template-columns:minmax(0,1fr)}}
+
+/* compare */
+.seg{display:inline-flex;gap:0;border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-radius:0;min-height:38px}
+.big{font:800 clamp(2rem,5vw,3rem)/1 var(--font-display);color:var(--accent);margin:10px 0 4px}
+
+/* mst */
+.status{margin-top:12px;padding:12px 14px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);font-size:15px}
+.status.ok{background:var(--done-soft);border-color:var(--done)}
+.status.warn{background:var(--frontier-soft);border-color:var(--frontier)}
+.status.bad{background:var(--bad-soft);border-color:var(--bad)}
+.stats{display:flex;gap:22px;flex-wrap:wrap;margin-top:12px}
+.stats div{font-size:13px;color:var(--muted)}
+.stats b{display:block;font:600 1.5rem var(--font-display);color:var(--ink);font-variant-numeric:tabular-nums}
+.elist{display:flex;flex-wrap:wrap;gap:6px}
+.ei{display:inline-flex;gap:6px;align-items:baseline;padding:4px 9px;border:1.5px solid var(--line);border-radius:6px;font:500 13px var(--font-mono);background:var(--surface)}
+.ei i{font-style:normal;font-size:11.5px;color:var(--muted)}
+.ei.acc{border-color:var(--done);background:var(--done-soft)}
+.ei.rej{border-color:var(--bad);background:var(--bad-soft)}
+.ei.cur{outline:2.5px solid var(--accent);outline-offset:1px}
+.tot{margin:10px 0 0;font:600 14px var(--font-mono)}
+.eg{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.eg .btn{min-height:36px;font:500 13.5px var(--font-mono);padding:4px 12px}
+
+/* quiz */
+.qhead{display:flex;gap:16px;align-items:flex-start;justify-content:space-between}
+.tag{display:inline-block;margin-top:2px;padding:2px 10px;border-radius:20px;background:var(--surface);border:1.5px solid var(--line);font-size:13px;color:var(--muted)}
+.timer{position:relative;width:72px;height:72px;flex:none}
+.timer svg{width:72px;height:72px;transform:rotate(-90deg)}
+.timer .tr{fill:none;stroke:var(--line);stroke-width:6}
+.timer .tp{fill:none;stroke:var(--accent);stroke-width:6;stroke-linecap:round}
+.timer.low .tp{stroke:var(--bad)}
+.timer .tt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:600 16px var(--font-mono);font-variant-numeric:tabular-nums}
+.timer.low .tt{color:var(--bad)}
+.qtext{margin-top:14px;font-size:clamp(1.3rem,2.6vw,1.85rem);line-height:1.25;max-width:34em}
+.qdata{margin:14px 0 0;padding:10px 14px;background:var(--surface);border:1.5px dashed var(--edge);border-radius:8px;font:500 15px/1.6 var(--font-mono);white-space:pre-wrap;overflow-x:auto}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+@media (max-width:700px){.opts{grid-template-columns:minmax(0,1fr)}}
+.opt{display:flex;gap:12px;align-items:center;text-align:left;padding:12px 14px;background:var(--surface);border:1.5px solid var(--line);border-radius:10px;cursor:pointer;min-height:56px;transition:border-color .12s,background .12s}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt .ltr{flex:none;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border:1.5px solid var(--ink);border-radius:6px;font:600 14px var(--font-mono)}
+.opt[aria-checked="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt[aria-checked="true"] .ltr{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.opt:disabled{cursor:default}
+.qfoot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:20px}
+.timeup{margin:0;padding:8px 12px;border-radius:8px;background:var(--bad-soft);border:1.5px solid var(--bad);font-weight:500}
+.intro-list{margin:16px 0 0;padding-left:1.1em;display:flex;flex-direction:column;gap:8px;max-width:60ch}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.score{font:800 clamp(4rem,14vw,8rem)/1 var(--font-display);letter-spacing:-.03em;margin:12px 0 0;font-variant-numeric:tabular-nums}
+.score span{color:var(--muted);font-size:.45em}
+.dots{display:grid;grid-template-columns:repeat(15,minmax(0,1fr));gap:5px;margin-top:20px;max-width:560px}
+.dots i{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font:600 11px var(--font-mono);font-style:normal;background:var(--surface);border:1.5px solid var(--line);color:var(--muted)}
+.dots i.ok{background:var(--done);border-color:var(--done);color:var(--done-ink)}
+.dots i.no{background:var(--bad);border-color:var(--bad);color:var(--accent-ink)}
+@media (max-width:520px){.dots{grid-template-columns:repeat(8,minmax(0,1fr))}}
+.rstats{display:flex;gap:24px;flex-wrap:wrap;margin-top:18px;font-size:14px;color:var(--muted)}
+.rstats b{display:block;font:600 1.4rem var(--font-display);color:var(--ink)}
+
+/* answer key */
+.kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px;margin-top:18px}
+.kcard{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+.khead{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.khead b{font:600 13px var(--font-mono);color:var(--accent)}
+.khead span{font-size:12.5px;color:var(--muted)}
+.badge2{margin-left:auto;padding:1px 9px;border-radius:20px;font:600 12px var(--font-mono);border:1.5px solid var(--line)}
+.badge2.ok{background:var(--done-soft);border-color:var(--done)}
+.badge2.no{background:var(--bad-soft);border-color:var(--bad)}
+.kq{font-weight:600;margin:0}
+.kdata{margin:8px 0 0;font:13.5px/1.5 var(--font-mono);color:var(--muted)}
+.kopts{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}
+.kopts li{display:flex;gap:8px;align-items:baseline;padding:5px 9px;border-radius:6px;font-size:14.5px;border:1.5px solid transparent}
+.kopts li b{font:600 13px var(--font-mono);min-width:1.2em}
+.kopts li em{margin-left:auto;font:600 11.5px var(--font-mono);font-style:normal;white-space:nowrap}
+.kopts li.right{background:var(--done-soft);border-color:var(--done)}
+.kopts li.mine{background:var(--bad-soft);border-color:var(--bad)}
+.kwhy{margin:10px 0 0;font-size:14px;color:var(--muted)}
+.ksum{margin:10px 0 0;padding:12px 14px;border-radius:8px;background:var(--accent-soft);max-width:70ch}
+
+@media (prefers-reduced-motion:reduce){
+  .slide:not([hidden]){animation:none}
+  .hero-art .node circle{animation:none}
+  .progress i,.btn,.opt,.fill{transition:none}
+}
+</style>
+
+<div class="app" id="app">
+  <header class="bar">
+    <button class="btn quiet" id="menuBtn" type="button" aria-expanded="false" aria-controls="menu">Contents</button>
+    <span class="brand">Chapter 7 · Graphs</span>
+    <span class="count" id="count"></span>
+  </header>
+  <nav class="menu" id="menu" hidden aria-label="Slide contents"></nav>
+  <div class="progress" role="presentation"><i id="progressFill"></i></div>
+
+  <main id="stage">
+    <!-- Title -->
+    <section class="slide" data-id="title" data-label="Title" tabindex="-1" hidden>
+      <div class="hero">
+        <div>
+          <p class="eyebrow">Chapter 7</p>
+          <h1>Graph Traversal, Shortest Paths, and Minimum Spanning Trees</h1>
+          <p class="lead">Eight topics with live demos you can step through, then a timed 15-question quiz. The answer key is the last slide.</p>
+          <ol class="agenda" id="agenda"></ol>
+        </div>
+        <div class="panel hero-art"><svg id="heroSvg" role="img" aria-label="A small graph whose vertices light up one after another"></svg></div>
+      </div>
+    </section>
+
+    <!-- 1 Terminology -->
+    <section class="slide" data-id="terms" data-label="1 · Graph terminology" tabindex="-1" hidden>
+      <p class="eyebrow">Topic 1 of 8</p>
+      <h2>Graph Terminology</h2>
+      <p class="lead">A graph G = (V, E) is a set of vertices V joined by a set of edges E. Pick a term to see it on the graph.</p>
+      <div class="split">
+        <div>
+          <div class="termlist" id="termList"></div>
+          <div class="defn" id="termDef" aria-live="polite"></div>
+        </div>
+        <div class="panel"><svg id="termSvg" role="img" aria-label="Example graph with seven vertices A to G"></svg></div>
+      </div>
+      <div class="kinds">
+        <div><b>Undirected</b>Edges have no direction. A–B is the same edge as B–A.</div>
+        <div><b>Directed</b>Edges are arrows. A → B does not give you B → A.</div>
+        <div><b>Weighted</b>Each edge carries a cost such as distance, time or price.</div>
+        <div><b>Tree and DAG</b>A tree is connected with no cycles. A DAG is directed with no cycles.</div>
+      </div>
+    </section>
+
+    <!-- 2 Adjacency -->
+    <section class="slide" data-id="adj" data-label="2 · Matrix and list" tabindex="-1" hidden>
+      <p class="eyebrow">Topic 2 of 8</p>
+      <h2>Adjacency Matrix and Adjacency List</h2>
+      <p class="lead">Two ways to store the same graph. Hover or tap an edge, a 1 in the matrix, or an entry in the list to see where it lives in each view.</p>
+      <div class="triple">
+        <div class="panel"><svg id="adjSvg" role="img" aria-label="Example graph"></svg></div>
+        <div class="panel">
+          <h4>Adjacency matrix</h4>
+          <div class="scroll"><table class="mx" id="mx"></table></div>
+          <p class="note">M[i][j] = 1 when vertices i and j share an edge. The matrix is symmetric because the graph is undirected.</p>
+        </div>
+        <div class="panel">
+          <h4>Adjacency list</h4>
+          <ul class="alist" id="alist"></ul>
+          <p class="note">Each vertex keeps only its actual neighbours.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-id="adj2" data-label="2 · Matrix or list?" tabindex="-1" hidden>
+      <p class="eyebrow">Topic 2 of 8 · continued</p>
+      <h2>Matrix or list?</h2>
+      <p class="lead">The right choice depends on how many edges the graph has compared with how many it could have.</p>
+      <div class="split" style="margin-top:16px">
+        <div class="panel scroll">
+          <table class="tbl">
+            <thead><tr><th>Operation</th><th>Matrix</th><th>List</th></tr></thead>
+            <tbody>
+              <tr><td>Memory</td><td class="mono">O(V²)</td><td class="mono">O(V + E)</td></tr>
+              <tr><td>Is there an edge u–v?</td><td class="mono">O(1)</td><td class="mono">O(deg u)</td></tr>
+              <tr><td>List the neighbours of u</td><td class="mono">O(V)</td><td class="mono">O(deg u)</td></tr>
+              <tr><td>Add an edge</td><td class="mono">O(1)</td><td class="mono">O(1)</td></tr>
+              <tr><td>Best suited to</td><td>Dense graphs</td><td>Sparse graphs</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <h4>Try the numbers</h4>
+          <div class="slider"><label for="vIn">Vertices (V)</label><input type="range" id="vIn" min="5" max="60" value="20"><output id="vOut">20</output></div>
+          <div class="slider"><label for="dIn">Edge density</label><input type="range" id="dIn" min="1" max="100" value="10"><output id="dOut">10%</output></div>
+          <div class="bars">
+            <div class="bar-row"><span>Matrix: V² cells</span><div class="track"><div class="fill m" id="barM"></div></div></div>
+            <div class="bar-row"><span>List: V + 2E entries</span><div class="track"><div class="fill l" id="barL"></div></div></div>
+          </div>
+          <p class="note" id="adjVerdict"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 BFS -->
+    <section class="slide" data-id="bfs" data-label="3 · Breadth-first search" tabindex="-1" hidden>
+      <p class="eyebrow">Topic 3 of 8</p>
+      <h2>Breadth-First Search — BFS</h2>
+      <div class="split">
+        <div>
+          <p class="lead" style="margin-top:0">Explore in layers: the start vertex, then everything one edge away, then two edges away, and so on. A queue keeps the order first in, first out.</p>
+          <pre class="code" id="bfsCode"></pre>
+          <ul class="facts">
+            <li>A vertex is marked visited when it enters the queue, so nothing is queued twice.</li>
+            <li>On an unweighted graph it finds the fewest-edge path to every reachable vertex.</li>
+            <li>Runs in O(V + E) with an adjacency list.</li>
+          </ul>
+        </div>
+        <div id="bfsDemo"></div>
+      </div>
+    </section>
+
+    <!-- 4 DFS -->
+    <section class="slide" data-id="dfs" data-label="4 · Depth-first search" tabindex="-1" hidden>
+      <p class="eyebrow">Topic 4 of 8</p>
+      <h2>Depth-First Search — DFS</h2>
+      <div class="split">
+        <div>
+          <p class="lead" style="margin-top:0">Go as deep as possible along one branch, then back up and try the next. The recursion call stack (or an explicit stack) remembers where to return.</p>
+          <pre class="code" id="dfsCode"></pre>
+          <ul class="facts">
+            <li>Neighbours are tried in alphabetical order here, so the walk is repeatable.</li>
+            <li>Useful for cycle detection, topological sorting and finding connected components.</li>
+            <li>Runs in O(V + E) with an adjacency list.</li>
+          </ul>
+        </div>
+        <div id="dfsDemo"></div>
+      </div>
+    </section>
+
+    <!-- 5 Compare -->
+    <section class="slide" data-id="cmp" data-label="5 · BFS vs DFS" tabindex="-1" hidden>
+      <p class="eyebrow">Topic 5 of 8</p>
+      <h2>BFS versus DFS and Traversal Complexity</h2>
+      <div class="split" style="margin-top:16px">
+        <div class="panel scroll">
+          <table class="tbl">
+            <thead><tr><th></th><th>BFS</th><th>DFS</th></tr></thead>
+            <tbody>
+              <tr><td>Data structure</td><td>Queue</td><td>Stack or recursion</td></tr>
+              <tr><td>Explores</td><td>Level by level</td><td>Deep first, then backtracks</td></tr>
+              <tr><td>Fewest-edge paths</td><td>Yes, when unweighted</td><td>No</td></tr>
+              <tr><td>Memory grows with</td><td>Widest level</td><td>Longest path</td></tr>
+              <tr><td>Typical uses</td><td>Hop counts, nearest vertex, level order</td><td>Cycles, topological order, components</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="stack">
+          <div class="panel">
+            <h4>Running time depends on the representation</h4>
+            <div class="seg" style="margin-top:10px" role="group" aria-label="Representation">
+              <button class="btn" type="button" id="cmpList" aria-pressed="true">Adjacency list</button>
+              <button class="btn" type="button" id="cmpMat" aria-pressed="false">Adjacency matrix</button>
+            </div>
+            <div class="big" id="cmpBig">O(V + E)</div>
+            <p class="note" id="cmpWhy" style="margin-top:0"></p>
+          </div>
+          <div class="panel">
+            <h4>Same graph, same start vertex A</h4>
+            <p class="boxh" style="margin:10px 0 6px">BFS order</p><div class="chips" id="cmpBfs"></div>
+            <p class="boxh" style="margin:12px 0 6px">DFS order</p><div class="chips" id="cmpDfs"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 Dijkstra -->
+    <section class="slide" data-id="dij" data-label="6 · Dijkstra" tabindex="-1" hidden>
+      <p class="eyebrow">Topic 6 of 8</p>
+      <h2>Dijkstra’s Shortest-Path Algorithm</h2>
+      <div class="split wide">
+        <div>
+          <p class="lead" style="margin-top:0">Finds the cheapest path from one source to every vertex in a graph with non-negative weights. Always finish the closest unfinished vertex next, then relax its edges.</p>
+          <pre class="code" id="dijCode"></pre>
+          <ul class="facts">
+            <li>Negative edge weights break the guarantee.</li>
+            <li>With a binary heap: O((V + E) log V).</li>
+          </ul>
+        </div>
+        <div id="dijDemo"></div>
+      </div>
+    </section>
+
+    <!-- 7 MST -->
+    <section class="slide" data-id="mst" data-label="7 · Minimum spanning tree" tabindex="-1" hidden>
+      <p class="eyebrow">Topic 7 of 8</p>
+      <h2>Minimum Spanning Tree — MST</h2>
+      <p class="lead">A spanning tree connects all V vertices using exactly V − 1 edges and no cycles. The minimum spanning tree is the one with the smallest total weight. Build one below by clicking edges.</p>
+      <div class="split">
+        <div>
+          <div class="panel"><svg id="mstSvg" role="img" aria-label="Weighted graph with six vertices. Click an edge to select it."></svg></div>
+          <p class="note">Starting example: a valid spanning tree that is not the cheapest. Click edges, or use the buttons, to change it.</p>
+        </div>
+        <div>
+          <div class="stats">
+            <div>Edges chosen<b id="mstK">0</b></div>
+            <div>Edges needed<b>5</b></div>
+            <div>Total weight<b id="mstW">0</b></div>
+          </div>
+          <div class="status" id="mstStatus" aria-live="polite"></div>
+          <div class="eg" id="mstBtns"></div>
+          <div class="controls">
+            <button class="btn" type="button" id="mstClear">Clear</button>
+            <button class="btn primary" type="button" id="mstShow">Show the minimum</button>
+          </div>
+          <ul class="facts">
+            <li>Cut property: the lightest edge crossing any cut belongs to some MST.</li>
+            <li>If all weights are different, the MST is unique.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8 Kruskal -->
+    <section class="slide" data-id="kru" data-label="8 · Kruskal" tabindex="-1" hidden>
+      <p class="eyebrow">Topic 8 of 8</p>
+      <h2>Kruskal’s Algorithm</h2>
+      <div class="split wide">
+        <div>
+          <p class="lead" style="margin-top:0">Sort the edges, then take them lightest first. Keep an edge only if it joins two different trees. Union-find answers that question quickly.</p>
+          <pre class="code" id="kruCode"></pre>
+          <ul class="facts">
+            <li>Sorting dominates: O(E log E), the same as O(E log V).</li>
+            <li>Stops as soon as V − 1 edges are chosen.</li>
+          </ul>
+        </div>
+        <div id="kruDemo"></div>
+      </div>
+    </section>
+
+    <!-- Quiz intro -->
+    <section class="slide" data-id="intro" data-kind="intro" data-label="Quiz" tabindex="-1" hidden>
+      <p class="eyebrow">Quiz</p>
+      <h2>15 questions, 60 seconds each</h2>
+      <ul class="intro-list">
+        <li>Choose an answer by clicking it or pressing A, B, C or D.</li>
+        <li>When the timer ends, your current choice is submitted and the next question appears.</li>
+        <li>You cannot go back during the quiz. Right and wrong answers are not shown until the end.</li>
+        <li>The last slide of the deck is the full answer key with explanations.</li>
+      </ul>
+      <div class="cta">
+        <button class="btn primary" type="button" id="startBtn">Start the quiz</button>
+        <button class="btn quiet" type="button" id="skipKey">Skip to the answer key</button>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section class="slide" data-id="results" data-kind="results" data-label="Results" tabindex="-1" hidden>
+      <p class="eyebrow">Your result</p>
+      <h2 id="verdict">Quiz complete</h2>
+      <div class="score" id="score"></div>
+      <div class="dots" id="dots"></div>
+      <div class="rstats" id="rstats"></div>
+      <div class="cta">
+        <button class="btn primary" type="button" id="toKey">See the answer key</button>
+        <button class="btn" type="button" id="retake1">Retake the quiz</button>
+      </div>
+    </section>
+
+    <!-- Answer key (last slide) -->
+    <section class="slide" data-id="key" data-kind="key" data-label="Answer key" tabindex="-1" hidden>
+      <p class="eyebrow">Answer key</p>
+      <h2>Answers and explanations</h2>
+      <p class="ksum" id="keySummary"></p>
+      <div class="cta" style="margin-top:12px"><button class="btn" type="button" id="retake2">Take the quiz again</button></div>
+      <div class="kgrid" id="keyGrid"></div>
+    </section>
+  </main>
+
+  <footer class="bar">
+    <button class="btn" type="button" id="prev">← Back</button>
+    <span class="hint" id="hint">Arrow keys also work</span>
+    <button class="btn primary" type="button" id="next">Next →</button>
+  </footer>
+</div>
+
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var NS='http://www.w3.org/2000/svg';
+function S(tag,attrs){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);return e}
+function H(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+function btn(label,cls){var b=H('button','btn '+(cls||''),label);b.type='button';return b}
+var key=function(a,b){return [a,b].sort().join('')};
+var INF=Infinity;
+
+/* ---------- data ---------- */
+var TOPICS=[['terms','Graph Terminology'],['adj','Adjacency Matrix and Adjacency List'],['bfs','Breadth-First Search — BFS'],['dfs','Depth-First Search — DFS'],['cmp','BFS versus DFS and Traversal Complexity'],['dij','Dijkstra’s Shortest-Path Algorithm'],['mst','Minimum Spanning Tree — MST'],['kru','Kruskal’s Algorithm']];
+
+var G1={weighted:false,
+  nodes:{A:{x:70,y:170},B:{x:190,y:80},C:{x:190,y:260},D:{x:320,y:50},E:{x:320,y:150},F:{x:320,y:270},G:{x:450,y:200}},
+  edges:['AB','AC','BD','BE','CF','EG','FG'].map(function(s){return {a:s[0],b:s[1]}})};
+var G2={weighted:true,
+  nodes:{S:{x:60,y:170},A:{x:190,y:60},B:{x:190,y:270},C:{x:340,y:150},D:{x:340,y:285},T:{x:480,y:200}},
+  edges:[['S','A',4],['S','B',2],['B','A',1],['A','C',5],['B','C',8],['B','D',10],['C','D',2],['C','T',6],['D','T',3]].map(function(r){return {a:r[0],b:r[1],w:r[2]}})};
+var G3={weighted:true,
+  nodes:{A:{x:70,y:80},B:{x:240,y:45},C:{x:410,y:85},D:{x:70,y:265},E:{x:250,y:295},F:{x:450,y:240}},
+  edges:[['A','B',3],['B','C',4],['A','C',5,.15],['C','F',6],['A','D',7],['D','E',2],['E','F',8],['B','E',9],['B','D',10]].map(function(r){return {a:r[0],b:r[1],w:r[2],t:r[3]}})};
+
+function adjOf(g){var m={},id;for(id in g.nodes)m[id]=[];g.edges.forEach(function(e){m[e.a].push({to:e.b,w:e.w});m[e.b].push({to:e.a,w:e.w})});for(id in m)m[id].sort(function(x,y){return x.to<y.to?-1:1});return m}
+
+/* ---------- graph drawing ---------- */
+function makeGraph(svg,g){
+  svg.setAttribute('viewBox','0 0 540 340');
+  var eg=S('g'),ng=S('g'),E={},N={};
+  g.edges.forEach(function(e){
+    var p=g.nodes[e.a],q=g.nodes[e.b],k=key(e.a,e.b);
+    var grp=S('g',{'class':'edge'});
+    grp.append(S('line',{'class':'vis',x1:p.x,y1:p.y,x2:q.x,y2:q.y}));
+    grp.append(S('line',{'class':'hit',x1:p.x,y1:p.y,x2:q.x,y2:q.y}));
+    if(g.weighted){
+      var t=e.t==null?.5:e.t;
+      var tx=S('text',{'class':'wt',x:p.x+(q.x-p.x)*t,y:p.y+(q.y-p.y)*t+4,'text-anchor':'middle'});
+      tx.textContent=e.w;grp.append(tx);
+    }
+    eg.append(grp);E[k]=grp;
+  });
+  Object.keys(g.nodes).forEach(function(id){
+    var p=g.nodes[id],grp=S('g',{'class':'node'});
+    var c=S('circle',{cx:p.x,cy:p.y,r:22});
+    var t=S('text',{x:p.x,y:p.y+5,'text-anchor':'middle','class':'lbl'});t.textContent=id;
+    var b=S('text',{x:p.x,y:p.y+43,'text-anchor':'middle','class':'badge'});
+    grp.append(c,t,b);ng.append(grp);N[id]=grp;
+  });
+  svg.append(eg,ng);
+  return {E:E,N:N,svg:svg,paint:function(st){
+    st=st||{};
+    Object.keys(N).forEach(function(id){
+      N[id].setAttribute('class','node '+((st.node&&st.node[id])||''));
+      N[id].querySelector('.badge').textContent=(st.badge&&st.badge[id])||'';
+    });
+    Object.keys(E).forEach(function(k){E[k].setAttribute('class','edge '+((st.edge&&st.edge[k])||''))});
+  }};
+}
+
+/* ---------- stepper ---------- */
+var steppers=[];
+function stepper(root,total,render){
+  root.textContent='';
+  var back=btn('← Back'),next=btn('Next step →','primary'),play=btn('Auto-play'),reset=btn('Reset'),pos=H('span','steppos');
+  root.append(back,next,play,reset,pos);
+  var i=0,timer=null;
+  function pause(){if(timer){clearInterval(timer);timer=null}play.textContent='Auto-play'}
+  function go(n){
+    i=Math.max(0,Math.min(total-1,n));render(i);
+    back.disabled=i===0;next.disabled=i===total-1;pos.textContent='Step '+(i+1)+' of '+total;
+    if(i===total-1)pause();
+  }
+  back.onclick=function(){pause();go(i-1)};
+  next.onclick=function(){pause();go(i+1)};
+  reset.onclick=function(){pause();go(0)};
+  play.onclick=function(){
+    if(timer){pause();return}
+    if(i===total-1)go(0);
+    play.textContent='Pause';
+    timer=setInterval(function(){go(i+1)},1300);
+  };
+  steppers.push({pause:pause});
+  go(0);
+}
+function codeBlock(pre,lines){pre.textContent='';return lines.map(function(t){var s=H('span','ln',t);pre.append(s);return s})}
+function setLines(els,on){els.forEach(function(el,i){el.classList.toggle('on',on.indexOf(i)>-1)})}
+function chips(box,items,topIdx,fmt){
+  box.textContent='';
+  if(!items.length){box.append(H('span','muted','empty'));return}
+  items.forEach(function(v,i){box.append(H('span','chip'+(i===topIdx?' top':''),fmt?fmt(v):v))});
+}
+
+/* ---------- traversal ---------- */
+function bfsSteps(g,s){
+  var adj=adjOf(g),steps=[],seen={},q=[s],done=[],order=[],tree=[];seen[s]=1;
+  function snap(cur,msg,lines){steps.push({cur:cur,front:q.slice(),done:done.slice(),order:order.slice(),tree:tree.slice(),msg:msg,lines:lines})}
+  snap(null,'Mark '+s+' as visited and put it in the queue.',[1]);
+  while(q.length){
+    var u=q.shift(),fresh=[];
+    adj[u].forEach(function(n){if(!seen[n.to]){seen[n.to]=1;q.push(n.to);fresh.push(n.to);tree.push(key(u,n.to))}});
+    order.push(u);
+    snap(u,'Dequeue '+u+'. '+(fresh.length?'Its unvisited neighbours '+fresh.join(', ')+' are marked and added to the back of the queue.':'It has no unvisited neighbours.'),fresh.length?[3,4,5,6]:[3,4]);
+    done.push(u);
+  }
+  snap(null,'The queue is empty, so every reachable vertex has been visited.',[2]);
+  return steps;
+}
+function dfsSteps(g,s){
+  var adj=adjOf(g),steps=[],seen={},stack=[],done=[],order=[],tree=[];
+  function snap(msg,lines){steps.push({cur:stack.length?stack[stack.length-1]:null,front:stack.slice(),done:done.slice(),order:order.slice(),tree:tree.slice(),msg:msg,lines:lines})}
+  function visit(u,p){
+    seen[u]=1;stack.push(u);order.push(u);if(p)tree.push(key(p,u));
+    snap(p?'Go deeper: call DFS('+u+') from '+p+'. Mark '+u+' visited.':'Call DFS('+u+'). Mark '+u+' visited.',[0,1]);
+    adj[u].forEach(function(n){if(!seen[n.to])visit(n.to,u)});
+    stack.pop();done.push(u);
+    var back=stack.length?stack[stack.length-1]:null;
+    snap(back?'Every neighbour of '+u+' is visited, so DFS('+u+') returns. Backtrack to '+back+'.':'DFS('+u+') returns. Every reachable vertex has been visited.',[2,3]);
+  }
+  visit(s,null);
+  return steps;
+}
+function buildTraversal(kind){
+  var isB=kind==='bfs',mount=$('#'+kind+'Demo'),pre=$('#'+kind+'Code');
+  mount.innerHTML='<div class="panel"><svg role="img" aria-label="Graph with seven vertices. Colours show visit progress."></svg></div>'+
+    '<div class="two"><div class="box"><h4 class="boxh" data-r="fh"></h4><div class="chips" data-r="front"></div></div>'+
+    '<div class="box"><h4 class="boxh">Visit order</h4><div class="chips" data-r="order"></div></div></div>'+
+    '<div class="narr" data-r="narr" aria-live="polite"></div><div class="controls" data-r="ctl"></div>';
+  $('[data-r=fh]',mount).textContent=isB?'Queue (front on the left)':'Call stack (top on the right)';
+  var g=makeGraph($('svg',mount),G1);
+  var lines=codeBlock(pre,isB?
+    ['BFS(G, s):','  mark s visited; enqueue(Q, s)','  while Q is not empty:','    u = dequeue(Q)','    for each neighbour v of u:','      if v is not visited:','        mark v visited; enqueue(Q, v)']:
+    ['DFS(u):','  mark u visited','  for each neighbour v of u:','    if v is not visited:','      DFS(v)   // then return here']);
+  var steps=isB?bfsSteps(G1,'A'):dfsSteps(G1,'A');
+  stepper($('[data-r=ctl]',mount),steps.length,function(i){
+    var st=steps[i],node={},edge={};
+    st.done.forEach(function(id){node[id]='n-done'});
+    st.front.forEach(function(id){node[id]='n-front'});
+    if(st.cur)node[st.cur]='n-cur';
+    st.tree.forEach(function(k){edge[k]='e-tree'});
+    g.paint({node:node,edge:edge});
+    chips($('[data-r=front]',mount),st.front,isB?0:st.front.length-1);
+    chips($('[data-r=order]',mount),st.order,-1);
+    $('[data-r=narr]',mount).textContent=st.msg;
+    setLines(lines,st.lines);
+  });
+  return steps;
+}
+
+/* ---------- Dijkstra ---------- */
+function dijkstraSteps(g,s,t){
+  var adj=adjOf(g),dist={},prev={},done={},steps=[],ids=Object.keys(g.nodes);
+  ids.forEach(function(id){dist[id]=INF});dist[s]=0;
+  function snap(cur,msg,rel,path,lines){
+    steps.push({cur:cur,dist:Object.assign({},dist),prev:Object.assign({},prev),done:Object.keys(done),
+      pq:ids.filter(function(v){return !done[v]&&v!==cur&&dist[v]<INF}).map(function(v){return [v,dist[v]]}).sort(function(a,b){return a[1]-b[1]||(a[0]<b[0]?-1:1)}),
+      relaxed:rel,path:path,msg:msg,lines:lines});
+  }
+  snap(null,'Start: dist('+s+') = 0 and every other vertex is ∞. Only '+s+' is in the priority queue.',[],[],[0]);
+  for(;;){
+    var u=null;
+    ids.forEach(function(v){if(!done[v]&&dist[v]<INF&&(u===null||dist[v]<dist[u]))u=v});
+    if(u===null)break;
+    var rel=[],notes=[];
+    adj[u].forEach(function(n){
+      if(done[n.to])return;
+      var nd=dist[u]+n.w;
+      if(nd<dist[n.to]){notes.push(n.to+': '+(dist[n.to]===INF?'∞':dist[n.to])+' → '+nd);dist[n.to]=nd;prev[n.to]=u;rel.push(key(u,n.to))}
+    });
+    snap(u,'Take '+u+', the closest unfinished vertex (distance '+dist[u]+'). '+(notes.length?'Relax its edges: '+notes.join(', ')+'.':'No distance improves.'),rel,[],notes.length?[2,3,4,5,6]:[2,3,4]);
+    done[u]=1;
+  }
+  var path=[];for(var v=t;v;v=prev[v])path.unshift(v);
+  snap(null,'All distances are final. Shortest path '+s+' to '+t+': '+path.join(' → ')+', total '+dist[t]+'.',[],path,[1]);
+  return steps;
+}
+function buildDijkstra(){
+  var mount=$('#dijDemo');
+  mount.innerHTML='<div class="panel"><svg role="img" aria-label="Weighted graph. Distances from S appear under each vertex."></svg></div>'+
+    '<div class="two"><div class="box"><h4 class="boxh">Priority queue (closest first)</h4><div class="chips" data-r="pq"></div></div>'+
+    '<div class="box"><h4 class="boxh">Distances from S</h4><div class="scroll"><table class="tbl small" data-r="tbl"></table></div></div></div>'+
+    '<div class="narr" data-r="narr" aria-live="polite"></div><div class="controls" data-r="ctl"></div>';
+  var g=makeGraph($('svg',mount),G2),ids=Object.keys(G2.nodes);
+  var lines=codeBlock($('#dijCode'),['dist[s] = 0, all others = ∞','repeat until every vertex is finished:','  u = unfinished vertex with smallest dist','  mark u finished','  for each edge (u, v, w):','    if dist[u] + w < dist[v]:','      dist[v] = dist[u] + w   // relax']);
+  var steps=dijkstraSteps(G2,'S','T');
+  var fmt=function(d){return d===INF?'∞':d};
+  stepper($('[data-r=ctl]',mount),steps.length,function(i){
+    var st=steps[i],node={},edge={},badge={};
+    st.pq.forEach(function(p){node[p[0]]='n-front'});
+    st.done.forEach(function(id){node[id]='n-done'});
+    if(st.cur)node[st.cur]='n-cur';
+    ids.forEach(function(id){badge[id]='d='+fmt(st.dist[id])});
+    var known=st.done.slice();if(st.cur)known.push(st.cur);
+    known.forEach(function(v){if(st.prev[v])edge[key(v,st.prev[v])]='e-done'});
+    st.relaxed.forEach(function(k){edge[k]='e-hl'});
+    for(var j=0;j<st.path.length-1;j++)edge[key(st.path[j],st.path[j+1])]='e-tree';
+    g.paint({node:node,edge:edge,badge:badge});
+    chips($('[data-r=pq]',mount),st.pq,0,function(p){return p[0]+':'+p[1]});
+    var tb=$('[data-r=tbl]',mount);tb.textContent='';
+    var hr=H('tr');['Vertex','dist','via'].forEach(function(h){hr.append(H('th',null,h))});tb.append(hr);
+    ids.forEach(function(id){
+      var tr=H('tr',st.cur===id?'cur':(st.done.indexOf(id)>-1?'fin':''));
+      tr.append(H('td',null,id),H('td','num',fmt(st.dist[id])),H('td','num',st.prev[id]||'–'));tb.append(tr);
+    });
+    $('[data-r=narr]',mount).textContent=st.msg;
+    setLines(lines,st.lines);
+  });
+}
+
+/* ---------- Kruskal ---------- */
+function kruskalSteps(g){
+  var edges=g.edges.slice().sort(function(x,y){return x.w-y.w}),parent={},status={},steps=[],ids=Object.keys(g.nodes),total=0,count=0,V=ids.length;
+  ids.forEach(function(id){parent[id]=id});
+  function find(x){return parent[x]===x?x:(parent[x]=find(parent[x]))}
+  function comps(){var m={};ids.forEach(function(id){var r=find(id);(m[r]=m[r]||[]).push(id)});return Object.keys(m).map(function(r){return m[r].sort()}).sort(function(a,b){return a[0]<b[0]?-1:1})}
+  function snap(cur,msg,lines){steps.push({status:Object.assign({},status),cur:cur,comps:comps(),total:total,count:count,msg:msg,lines:lines})}
+  snap(null,'Sort the '+edges.length+' edges by weight, lightest first. Every vertex starts as its own tree.',[0,1]);
+  for(var n=0;n<edges.length&&count<V-1;n++){
+    var e=edges[n],k=key(e.a,e.b),ra=find(e.a),rb=find(e.b);
+    if(ra!==rb){parent[ra]=rb;status[k]='acc';total+=e.w;count++;snap(k,'Edge '+e.a+'–'+e.b+' (weight '+e.w+') joins two different trees, so accept it. Total so far: '+total+'.',[2,3,4])}
+    else{status[k]='rej';snap(k,'Edge '+e.a+'–'+e.b+' (weight '+e.w+') links two vertices that are already in the same tree. Adding it would form a cycle, so reject it.',[2,3,5])}
+  }
+  snap(null,count+' edges = V − 1, so the tree spans every vertex and the remaining edges are skipped. Minimum total weight: '+total+'.',[6]);
+  return {steps:steps,edges:edges};
+}
+function buildKruskal(){
+  var mount=$('#kruDemo');
+  mount.innerHTML='<div class="panel"><svg role="img" aria-label="Weighted graph. Accepted edges are solid, rejected edges are dashed."></svg></div>'+
+    '<div class="two"><div class="box"><h4 class="boxh">Edges, lightest first</h4><div class="elist" data-r="elist"></div></div>'+
+    '<div class="box"><h4 class="boxh">Trees so far</h4><div class="chips" data-r="comps"></div><p class="tot" data-r="tot"></p></div></div>'+
+    '<div class="narr" data-r="narr" aria-live="polite"></div><div class="controls" data-r="ctl"></div>';
+  var g=makeGraph($('svg',mount),G3);
+  var lines=codeBlock($('#kruCode'),['sort edges by weight','each vertex starts in its own set','for each edge (u, v) in sorted order:','  if find(u) ≠ find(v):','    add the edge; union(u, v)','  else: skip it, it would form a cycle','stop when the tree has V − 1 edges']);
+  var R=kruskalSteps(G3),steps=R.steps;
+  stepper($('[data-r=ctl]',mount),steps.length,function(i){
+    var st=steps[i],edge={},last=i===steps.length-1;
+    Object.keys(st.status).forEach(function(k){edge[k]=st.status[k]==='acc'?'e-done':'e-rej'});
+    g.paint({edge:edge});
+    var el=$('[data-r=elist]',mount);el.textContent='';
+    R.edges.forEach(function(e){
+      var k=key(e.a,e.b),s=st.status[k],label=s==='acc'?'accepted':s==='rej'?'cycle, rejected':(last?'skipped':'waiting');
+      var item=H('span','ei '+(s||'')+(st.cur===k?' cur':''));
+      item.append(H('b',null,e.a+e.b),document.createTextNode(String(e.w)),H('i',null,label));el.append(item);
+    });
+    var cb=$('[data-r=comps]',mount);cb.textContent='';
+    st.comps.forEach(function(c){cb.append(H('span','chip grp','{'+c.join(', ')+'}'))});
+    $('[data-r=tot]',mount).textContent='Edges chosen: '+st.count+' of 5 · Total weight: '+st.total;
+    $('[data-r=narr]',mount).textContent=st.msg;
+    setLines(lines,st.lines);
+  });
+}
+
+/* ---------- MST playground ---------- */
+function buildMST(){
+  var svg=$('#mstSvg');svg.classList.add('interactive');
+  var g=makeGraph(svg,G3),sel={AB:1,BC:1,CF:1,EF:1,BD:1},ids=Object.keys(G3.nodes);
+  var sorted=G3.edges.slice().sort(function(x,y){return x.w-y.w}),W={};
+  G3.edges.forEach(function(e){W[key(e.a,e.b)]=e.w});
+  var btns={},box=$('#mstBtns');
+  sorted.forEach(function(e){
+    var k=key(e.a,e.b),b=btn(e.a+'–'+e.b+'  '+e.w);
+    b.setAttribute('aria-pressed','false');b.onclick=function(){toggle(k)};box.append(b);btns[k]=b;
+    g.E[k].addEventListener('click',function(){toggle(k)});
+  });
+  function toggle(k){if(sel[k])delete sel[k];else sel[k]=1;update()}
+  function update(){
+    var parent={};ids.forEach(function(id){parent[id]=id});
+    function find(x){return parent[x]===x?x:(parent[x]=find(parent[x]))}
+    var edge={},cyc=false,k=0,w=0;
+    sorted.forEach(function(e){
+      var kk=key(e.a,e.b);
+      btns[kk].setAttribute('aria-pressed',sel[kk]?'true':'false');
+      if(!sel[kk])return;
+      k++;w+=e.w;
+      var ra=find(e.a),rb=find(e.b);
+      if(ra===rb){cyc=true;edge[kk]='e-rej'}else{parent[ra]=rb;edge[kk]='e-tree'}
+    });
+    var comps={};ids.forEach(function(id){comps[find(id)]=1});
+    var nc=Object.keys(comps).length;
+    g.paint({edge:edge});
+    $('#mstK').textContent=k;$('#mstW').textContent=w;
+    var st=$('#mstStatus'),cls,msg;
+    if(cyc){cls='bad';msg='The dashed edge closes a cycle. A tree cannot contain one, so remove an edge.'}
+    else if(k<5){cls='warn';msg='Not spanning yet: the graph is in '+nc+' separate pieces. Add '+(nc-1)+' more edge'+(nc-1===1?'':'s')+' that join different pieces.'}
+    else if(w===22){cls='ok';msg='This is a minimum spanning tree. Total weight 22 is the lowest possible.'}
+    else{cls='warn';msg='Valid spanning tree with weight '+w+', but a cheaper one exists (weight 22). Swap in lighter edges.'}
+    st.className='status '+cls;st.textContent=msg;
+  }
+  $('#mstClear').onclick=function(){sel={};update()};
+  $('#mstShow').onclick=function(){sel={DE:1,AB:1,BC:1,CF:1,AD:1};update()};
+  update();
+}
+
+/* ---------- terminology ---------- */
+function buildTerms(){
+  var g=makeGraph($('#termSvg'),G1);
+  function E(){var o={};Array.prototype.forEach.call(arguments,function(k){o[k]='e-tree'});return o}
+  function N(cls,list){var o={};list.split('').forEach(function(c){o[c]=cls});return o}
+  var T=[
+    {n:'Vertex',t:'A point in the graph, also called a node. This graph has V = 7 vertices.',node:N('n-cur','A')},
+    {n:'Edge',t:'A connection between two vertices. This graph has E = 7 edges. Edge B–E is shown.',node:N('n-hl','BE'),edge:E('BE')},
+    {n:'Adjacent',t:'Two vertices joined directly by an edge. A and C are adjacent. A and D are not.',node:N('n-hl','AC'),edge:E('AC')},
+    {n:'Degree',t:'The number of edges touching a vertex. deg(B) = 3, from its edges to A, D and E.',node:Object.assign(N('n-hl','ADE'),N('n-cur','B')),edge:E('AB','BD','BE')},
+    {n:'Path',t:'A sequence of vertices where each neighbouring pair is joined by an edge. A → B → E → G is a path of length 3.',node:N('n-hl','ABEG'),edge:E('AB','BE','EG')},
+    {n:'Cycle',t:'A path that starts and ends at the same vertex. A → B → E → G → F → C → A is a cycle of length 6.',node:N('n-hl','ABEGFC'),edge:E('AB','BE','EG','FG','CF','AC')},
+    {n:'Connected',t:'Every vertex can reach every other vertex. This graph is connected. If it were not, it would split into separate components.',node:N('n-hl','ABCDEFG'),edge:E('AB','AC','BD','BE','CF','EG','FG')}
+  ];
+  var list=$('#termList'),def=$('#termDef'),bs=[];
+  function pick(i){
+    bs.forEach(function(b,j){b.setAttribute('aria-pressed',j===i?'true':'false')});
+    def.textContent='';def.append(H('b',null,T[i].n),H('br'),document.createTextNode(T[i].t));
+    g.paint({node:T[i].node,edge:T[i].edge||{}});
+  }
+  T.forEach(function(t,i){var b=btn(t.n);b.setAttribute('aria-pressed','false');b.onclick=function(){pick(i)};list.append(b);bs.push(b)});
+  pick(0);
+}
+
+/* ---------- adjacency ---------- */
+function buildAdj(){
+  var g=makeGraph($('#adjSvg'),G1);$('#adjSvg').classList.add('interactive');
+  var adj=adjOf(G1),ids=Object.keys(G1.nodes),mx=$('#mx'),al=$('#alist'),hs=[];
+  var tr=H('tr');tr.append(H('th'));ids.forEach(function(c){var th=H('th',null,c);th.dataset.h=c;tr.append(th);hs.push(th)});mx.append(tr);
+  var cells=[],pills=[];
+  ids.forEach(function(r){
+    var row=H('tr'),th=H('th',null,r);th.dataset.h=r;hs.push(th);row.append(th);
+    ids.forEach(function(c){
+      var has=adj[r].some(function(n){return n.to===c}),td=H('td',has?'one':'',has?'1':'0');
+      if(has){td.dataset.k=key(r,c);td.tabIndex=0;cells.push(td);hook(td,td.dataset.k)}
+      row.append(td);
+    });
+    mx.append(row);
+    var li=H('li');li.append(H('span','vid',r),H('span','muted','→'));
+    adj[r].forEach(function(n){var p=H('button','pill',n.to);p.type='button';p.dataset.k=key(r,n.to);pills.push(p);hook(p,p.dataset.k);li.append(p)});
+    al.append(li);
+  });
+  Object.keys(g.E).forEach(function(k){hook(g.E[k],k)});
+  function hook(el,k){
+    el.addEventListener('mouseenter',function(){focus(k)});
+    el.addEventListener('mouseleave',function(){focus(null)});
+    el.addEventListener('focus',function(){focus(k)});
+    el.addEventListener('blur',function(){focus(null)});
+    el.addEventListener('click',function(){focus(k)});
+  }
+  function focus(k){
+    var node={},edge={};
+    if(k){node[k[0]]='n-hl';node[k[1]]='n-hl';edge[k]='e-tree'}
+    g.paint({node:node,edge:edge});
+    cells.concat(pills).forEach(function(el){el.classList.toggle('hl',!!k&&el.dataset.k===k)});
+    hs.forEach(function(th){th.classList.toggle('hl',!!k&&k.indexOf(th.dataset.h)>-1)});
+  }
+}
+function buildAdj2(){
+  var v=$('#vIn'),d=$('#dIn');
+  function upd(){
+    var V=+v.value,D=+d.value,E=Math.round(D/100*V*(V-1)/2),m=V*V,l=V+2*E,mx=Math.max(m,l);
+    $('#vOut').textContent=V;$('#dOut').textContent=D+'%';
+    var bm=$('#barM'),bl=$('#barL');
+    bm.style.width=(m/mx*100)+'%';bm.textContent=m;
+    bl.style.width=(l/mx*100)+'%';bl.textContent=l;
+    $('#adjVerdict').textContent='E = '+E+' edges. '+(D>=50?'Dense graph: the matrix is competitive and answers “is there an edge?” in O(1).':'Sparse graph: the list stores far fewer entries and visits only real neighbours.');
+  }
+  v.oninput=upd;d.oninput=upd;upd();
+}
+
+/* ---------- compare ---------- */
+function buildCompare(){
+  function chipsFor(id,arr){var b=$(id);arr.forEach(function(x,i){b.append(H('span','chip'+(i===0?' top':''),x))})}
+  var bs=bfsSteps(G1,'A'),ds=dfsSteps(G1,'A');
+  chipsFor('#cmpBfs',bs[bs.length-1].order);chipsFor('#cmpDfs',ds[ds.length-1].order);
+  var L=$('#cmpList'),M=$('#cmpMat');
+  function set(list){
+    L.setAttribute('aria-pressed',list?'true':'false');M.setAttribute('aria-pressed',list?'false':'true');
+    $('#cmpBig').textContent=list?'O(V + E)':'O(V²)';
+    $('#cmpWhy').textContent=list?'Each vertex is processed once, and every adjacency list is scanned once. The lists hold 2E entries in total (E for a directed graph), so the work adds up to V + E.':'Each vertex is processed once, but finding its neighbours means scanning a whole row of V entries. V rows of V entries give V².';
+  }
+  L.onclick=function(){set(true)};M.onclick=function(){set(false)};set(true);
+}
+
+/* ---------- quiz data ---------- */
+var Q=[
+ {topic:'Graph terminology',q:'An undirected graph has 7 edges. What is the sum of the degrees of all its vertices?',o:['7','14','21','49'],a:1,why:'Each edge adds 1 to the degree of both of its endpoints, so the degree sum is 2E = 14 (the handshaking lemma).'},
+ {topic:'Graph terminology',q:'A connected, undirected graph with no cycles is called a…',o:['Complete graph','Directed acyclic graph','Tree','Multigraph'],a:2,why:'Connected plus acyclic defines a tree. A DAG is directed and need not be connected.'},
+ {topic:'Adjacency matrix and list',q:'How much memory does an adjacency matrix need for a graph with V vertices and E edges?',o:['O(V + E)','O(E log V)','O(V)','O(V²)'],a:3,why:'The matrix always has V rows and V columns, no matter how few edges the graph has.'},
+ {topic:'Adjacency matrix and list',q:'Which task is faster on an adjacency matrix than on an adjacency list?',o:['Testing whether edge u–v exists, in O(1)','Listing the neighbours of u in O(deg u)','Storing a sparse graph in O(V + E) space','Adding a new vertex without copying'],a:0,why:'A matrix lookup M[u][v] is a single array access. Listing neighbours in O(deg u) and O(V + E) space are strengths of the list.'},
+ {topic:'Breadth-first search',q:'Which data structure drives breadth-first search?',o:['Priority queue','Queue','Stack','Hash map'],a:1,why:'A FIFO queue makes BFS finish one level before starting the next.'},
+ {topic:'Breadth-first search',q:'BFS starts at A and visits neighbours in alphabetical order. In what order are the vertices visited?',data:'Edges: A–B  A–C  B–D  C–E  D–F',o:['A, B, C, D, E, F','A, B, D, F, C, E','A, C, B, E, D, F','F, D, B, E, C, A'],a:0,why:'Level 0: A. Level 1: B, C. Level 2: D, E. Level 3: F. Each level is finished before the next starts.'},
+ {topic:'Depth-first search',q:'DFS remembers where to return to by using…',o:['A queue','A min-heap','A stack, or the recursion call stack','A sorted list'],a:2,why:'Backtracking is last in, first out, which is exactly a stack. Recursion uses the call stack for the same job.'},
+ {topic:'Depth-first search',q:'DFS starts at A and visits neighbours in alphabetical order. In what order are the vertices visited?',data:'Edges: A–B  A–C  B–D  C–E  D–F',o:['A, B, C, D, E, F','A, C, E, B, D, F','A, B, D, C, E, F','A, B, D, F, C, E'],a:3,why:'DFS goes A → B → D → F until it is stuck, backtracks to A, then goes to C → E.'},
+ {topic:'BFS versus DFS',q:'You need the fewest number of hops between two machines in an unweighted network. Which traversal fits?',o:['DFS, because it goes deep first','BFS, because it explores level by level','Either one, both always give the shortest path','Neither, only Dijkstra can do it'],a:1,why:'BFS reaches every vertex by a path with the fewest edges. DFS can find a long detour first.'},
+ {topic:'BFS versus DFS',q:'DFS runs on a graph stored as an adjacency matrix. What is its running time?',o:['O(V²)','O(V + E)','O(E log E)','O(V³)'],a:0,why:'Every vertex is processed once, and finding its neighbours scans a row of V entries: V × V = V². With adjacency lists it is O(V + E).'},
+ {topic:'Dijkstra’s algorithm',q:'Dijkstra’s algorithm can return wrong answers when the graph has…',o:['Cycles','Undirected edges','Negative edge weights','More than one shortest path'],a:2,why:'Dijkstra assumes a finished vertex can never be improved later. A negative edge can break that assumption.'},
+ {topic:'Dijkstra’s algorithm',q:'What is the shortest distance from S to T?',data:'S–A 4 · S–B 1 · B–A 2 · A–T 1 · B–T 5',o:['5','4','6','7'],a:1,why:'S → B → A → T costs 1 + 2 + 1 = 4. The direct routes S → A → T (5) and S → B → T (6) are longer.'},
+ {topic:'Minimum spanning tree',q:'A connected graph has V vertices. How many edges does any spanning tree of it contain?',o:['V + 1','V','E − 1','V − 1'],a:3,why:'A tree on V vertices always has V − 1 edges. One fewer leaves it disconnected, one more creates a cycle.'},
+ {topic:'Kruskal’s algorithm',q:'Which structure lets Kruskal’s algorithm quickly test whether an edge would create a cycle?',o:['Union-find (disjoint sets)','Queue','Stack','Adjacency matrix'],a:0,why:'Union-find tells whether two vertices already share a tree and merges trees in nearly constant time.'},
+ {topic:'Kruskal’s algorithm',q:'What is the total weight of the minimum spanning tree found by Kruskal’s algorithm?',data:'A–B 1 · B–C 2 · A–C 3 · C–D 4',o:['6','8','7','10'],a:2,why:'Take A–B (1) and B–C (2). A–C (3) would form a cycle, so skip it. Take C–D (4). Total: 1 + 2 + 4 = 7.'}
+];
+var LET=['A','B','C','D'];
+
+/* ---------- navigation and quiz state ---------- */
+var stage=$('#stage'),slides=[],IX={},cur=0;
+var quiz={state:'idle',q:0,answers:[],score:0};
+var timerId=null,autoT=null,deadline=0,locked=false,selected=null,qEls=[];
+var C=2*Math.PI*28;
+
+function buildQuizSlides(){
+  var before=$('[data-id=results]');
+  Q.forEach(function(q,n){
+    var sec=H('section','slide');sec.dataset.id='q'+(n+1);sec.dataset.kind='q';sec.dataset.n=n;sec.dataset.label='Question '+(n+1);sec.tabIndex=-1;sec.hidden=true;
+    var head=H('div','qhead'),left=H('div');
+    left.append(H('p','eyebrow','Question '+(n+1)+' of '+Q.length),H('span','tag',q.topic));
+    var timer=H('div','timer');timer.setAttribute('role','timer');timer.setAttribute('aria-label','Time left');
+    var svg=S('svg',{viewBox:'0 0 72 72','aria-hidden':'true'});
+    svg.append(S('circle',{'class':'tr',cx:36,cy:36,r:28}),S('circle',{'class':'tp',cx:36,cy:36,r:28,'stroke-dasharray':C,'stroke-dashoffset':0}));
+    var tt=H('span','tt','1:00');timer.append(svg,tt);head.append(left,timer);
+    sec.append(head,H('h2','qtext',q.q));
+    if(q.data)sec.append(H('pre','qdata',q.data));
+    var opts=H('div','opts');opts.setAttribute('role','radiogroup');opts.setAttribute('aria-label','Answer choices');
+    var ob=q.o.map(function(t,i){
+      var b=H('button','opt');b.type='button';b.setAttribute('role','radio');b.setAttribute('aria-checked','false');
+      b.append(H('span','ltr',LET[i]),H('span',null,t));
+      b.onclick=function(){selectOpt(n,i)};opts.append(b);return b;
+    });
+    var foot=H('div','qfoot'),sub=btn('Skip question','primary'),tu=H('p','timeup',"Time's up. Your current choice was submitted.");tu.hidden=true;
+    sub.onclick=function(){submit(n)};
+    foot.append(sub,H('span','muted','Press A to D to choose'),tu);
+    sec.append(opts,foot);
+    stage.insertBefore(sec,before);
+    qEls[n]={sec:sec,opts:ob,submit:sub,timer:timer,prog:svg.querySelector('.tp'),tt:tt,timeup:tu};
+  });
+}
+function resetQuizUI(){
+  qEls.forEach(function(E,n){
+    E.opts.forEach(function(b){b.disabled=false;b.setAttribute('aria-checked','false')});
+    E.submit.disabled=false;E.submit.textContent='Skip question';E.timeup.hidden=true;
+    E.timer.classList.remove('low');E.prog.style.strokeDashoffset=0;E.tt.textContent='1:00';
+  });
+}
+function submitLabel(n){
+  var E=qEls[n];
+  E.submit.textContent=selected==null?(n===Q.length-1?'Skip and finish':'Skip question'):(n===Q.length-1?'Submit and finish':'Submit answer');
+}
+function selectOpt(n,i){
+  if(locked||n!==quiz.q)return;
+  selected=i;qEls[n].opts.forEach(function(b,j){b.setAttribute('aria-checked',j===i?'true':'false')});submitLabel(n);
+}
+function beginQuestion(n){
+  clearTimers();locked=false;selected=null;submitLabel(n);
+  deadline=Date.now()+60000;tick();timerId=setInterval(tick,100);
+}
+function tick(){
+  var n=quiz.q,E=qEls[n],left=Math.max(0,deadline-Date.now()),s=Math.ceil(left/1000);
+  E.tt.textContent=Math.floor(s/60)+':'+('0'+(s%60)).slice(-2);
+  E.prog.style.strokeDashoffset=C*(1-left/60000);
+  E.timer.classList.toggle('low',s<=10);
+  if(left<=0)expire();
+}
+function clearTimers(){if(timerId){clearInterval(timerId);timerId=null}if(autoT){clearTimeout(autoT);autoT=null}}
+function record(n,timedOut){
+  quiz.answers[n]={choice:selected,timedOut:timedOut,used:Math.min(60,Math.round((60000-Math.max(0,deadline-Date.now()))/1000))};
+}
+function expire(){
+  if(locked)return;locked=true;clearInterval(timerId);timerId=null;
+  var n=quiz.q,E=qEls[n];record(n,true);
+  E.timeup.hidden=false;E.opts.forEach(function(b){b.disabled=true});E.submit.disabled=true;
+  autoT=setTimeout(function(){if(quiz.state==='running'&&quiz.q===n)advance()},1600);
+}
+function submit(n){
+  if(locked||n!==quiz.q)return;
+  locked=true;clearTimers();record(n,false);advance();
+}
+function advance(){
+  if(quiz.q<Q.length-1){quiz.q++;show(IX['q'+(quiz.q+1)])}else finish();
+}
+function startQuiz(){
+  quiz.state='running';quiz.q=0;quiz.answers=[];quiz.score=0;resetQuizUI();show(IX.q1);
+}
+function finish(){
+  quiz.state='done';
+  quiz.score=Q.reduce(function(s,q,i){return s+((quiz.answers[i]&&quiz.answers[i].choice===q.a)?1:0)},0);
+  renderResults();show(IX.results);
+}
+function renderResults(){
+  var sc=quiz.score,n=Q.length,un=0,used=0;
+  quiz.answers.forEach(function(a){if(!a||a.choice==null)un++;if(a)used+=a.used});
+  $('#score').textContent='';$('#score').append(document.createTextNode(String(sc)),H('span',null,' / '+n));
+  $('#verdict').textContent=sc>=13?'Excellent work':sc>=10?'Solid understanding':sc>=7?'Getting there':'Worth another pass through the slides';
+  var dots=$('#dots');dots.textContent='';
+  Q.forEach(function(q,i){
+    var a=quiz.answers[i],ok=a&&a.choice===q.a,d=H('i',ok?'ok':(a&&a.choice!=null?'no':''),String(i+1));
+    d.title='Question '+(i+1)+': '+(ok?'correct':(a&&a.choice!=null?'incorrect':'no answer'));dots.append(d);
+  });
+  var rs=$('#rstats');rs.textContent='';
+  [[sc,'correct'],[n-sc-un,'incorrect'],[un,'unanswered'],[Math.round(used/n)+' s','average time per question']].forEach(function(p){
+    var d=H('div');d.append(H('b',null,String(p[0])),document.createTextNode(p[1]));rs.append(d);
+  });
+}
+function renderKey(){
+  var done=quiz.state==='done',box=$('#keyGrid');box.textContent='';
+  $('#keySummary').textContent=done?'You scored '+quiz.score+' out of '+Q.length+'. Your choice is marked on each card.':'You have not taken the quiz in this session. Here are all 15 correct answers with short explanations.';
+  Q.forEach(function(q,i){
+    var a=done?quiz.answers[i]:null,mine=a&&a.choice!=null?a.choice:null,card=H('article','kcard');
+    var head=H('div','khead');head.append(H('b',null,'Q'+(i+1)),H('span',null,q.topic));
+    if(done){head.append(H('span','badge2 '+(mine===q.a?'ok':'no'),mine===q.a?'Correct':(mine==null?'No answer':'Incorrect')))}
+    card.append(head,H('p','kq',q.q));
+    if(q.data)card.append(H('p','kdata',q.data));
+    var ul=H('ul','kopts');
+    q.o.forEach(function(t,j){
+      var li=H('li',j===q.a?'right':(j===mine?'mine':''));
+      li.append(H('b',null,LET[j]),document.createTextNode(t));
+      if(j===q.a)li.append(H('em',null,'Correct answer'));
+      else if(j===mine)li.append(H('em',null,'Your answer'));
+      ul.append(li);
+    });
+    card.append(ul,H('p','kwhy',q.why));box.append(card);
+  });
+}
+
+/* nav */
+function navList(){
+  var L=[];slides.forEach(function(s,i){var k=s.dataset.kind;if(k==='q')return;if(k==='results'&&quiz.state!=='done')return;L.push(i)});return L;
+}
+function canNext(){
+  if(quiz.state==='running')return false;
+  var L=navList(),p=L.indexOf(cur);
+  if(p<0||p>=L.length-1)return false;
+  if(slides[cur].dataset.kind==='intro'&&quiz.state!=='done')return false;
+  return true;
+}
+function canPrev(){if(quiz.state==='running')return false;return navList().indexOf(cur)>0}
+function next(){if(canNext()){var L=navList();show(L[L.indexOf(cur)+1])}}
+function prev(){if(canPrev()){var L=navList();show(L[L.indexOf(cur)-1])}}
+function show(i){
+  clearTimers();cur=i;
+  slides.forEach(function(s,j){s.hidden=j!==i});
+  stage.scrollTop=0;
+  steppers.forEach(function(p){p.pause()});
+  var s=slides[i];
+  try{s.focus({preventScroll:true})}catch(e){}
+  if(s.dataset.kind==='q')beginQuestion(+s.dataset.n);
+  if(s.dataset.kind==='key')renderKey();
+  closeMenu();updateChrome();
+}
+function updateChrome(){
+  var s=slides[cur],running=quiz.state==='running';
+  $('#count').textContent=s.dataset.kind==='q'?'Question '+(+s.dataset.n+1)+' of '+Q.length:'Slide '+(cur+1)+' of '+slides.length;
+  $('#progressFill').style.width=(cur/(slides.length-1)*100)+'%';
+  $('#prev').hidden=running;$('#next').hidden=running;$('#menuBtn').hidden=running;
+  $('#prev').disabled=!canPrev();$('#next').disabled=!canNext();
+  $('#hint').textContent=running?'Timer running. Right and wrong answers appear on the last slide.':(s.dataset.kind==='intro'&&quiz.state!=='done'?'Start the quiz to continue':'Arrow keys also work');
+}
+var menu=$('#menu'),menuBtn=$('#menuBtn');
+function closeMenu(){menu.hidden=true;menuBtn.setAttribute('aria-expanded','false')}
+menuBtn.onclick=function(){
+  if(!menu.hidden){closeMenu();return}
+  menu.textContent='';
+  navList().forEach(function(i){
+    var b=H('button',null,slides[i].dataset.label);b.type='button';
+    if(i===cur)b.setAttribute('aria-current','true');
+    b.onclick=function(){show(i)};menu.append(b);
+  });
+  menu.hidden=false;menuBtn.setAttribute('aria-expanded','true');
+};
+document.addEventListener('click',function(e){if(!menu.hidden&&!menu.contains(e.target)&&e.target!==menuBtn)closeMenu()});
+$('#prev').onclick=prev;$('#next').onclick=next;
+document.addEventListener('keydown',function(e){
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.key==='Escape'){closeMenu();return}
+  var tag=e.target&&e.target.tagName;
+  if(tag==='INPUT')return;
+  if(quiz.state==='running'){
+    var m={a:0,b:1,c:2,d:3,'1':0,'2':1,'3':2,'4':3}[String(e.key).toLowerCase()];
+    if(m!==undefined){selectOpt(quiz.q,m);e.preventDefault()}
+    return;
+  }
+  if(e.key==='ArrowRight'){next();e.preventDefault()}
+  else if(e.key==='ArrowLeft'){prev();e.preventDefault()}
+});
+
+/* ---------- boot ---------- */
+buildQuizSlides();
+slides=$$('#stage > .slide');
+slides.forEach(function(s,i){IX[s.dataset.id]=i});
+
+(function agenda(){
+  var ol=$('#agenda');
+  TOPICS.forEach(function(t,i){
+    var li=H('li'),b=H('button');b.type='button';b.append(H('b',null,String(i+1)),document.createTextNode(t[1]));
+    b.onclick=function(){show(IX[t[0]])};li.append(b);ol.append(li);
+  });
+  var li=H('li','q'),b=H('button');b.type='button';b.append(H('b',null,'Q'),document.createTextNode('Timed quiz, 15 questions'));
+  b.onclick=function(){show(IX.intro)};li.append(b);ol.append(li);
+})();
+(function hero(){
+  var g=makeGraph($('#heroSvg'),G1),order=['A','B','C','D','E','F','G'];
+  order.forEach(function(id,i){g.N[id].style.setProperty('--i',i)});
+})();
+buildTerms();buildAdj();buildAdj2();
+buildTraversal('bfs');buildTraversal('dfs');buildCompare();
+buildDijkstra();buildMST();buildKruskal();
+
+$('#startBtn').onclick=startQuiz;
+$('#skipKey').onclick=function(){show(IX.key)};
+$('#toKey').onclick=function(){show(IX.key)};
+$('#retake1').onclick=startQuiz;
+$('#retake2').onclick=startQuiz;
+
+show(0);
+})();
+</script>
+
+</body></html>
